@@ -12,59 +12,53 @@
 Tengo que revisar si el ultimo camino expandido queda al principio. 
 Esto para no tener que revisar toooodos los caminos y mapearle la funcion objective
 */
-astar(Problema,[Caminos],Solucion) :- 
-    comprobar(Problema,[Caminos],Solucion).
-astar(Problema,[Caminos],Solucion) :-
-    procesar(Problema,[Caminos],Nuevos),
-    astar(Problema,Nuevos,Solucion).
-
-comprobar(Problema,[[Costo,Estado|Estados]|Resto],Solucion) :-
+astar(Problema,[[Costo,Estado|Estados]|Caminos],Solucion) :- 
     objective(Problema,Estado),
     append([Costo],[Estado],Solucion).
-comprobar(Problema,[[Costo,Estado|Estados]|Resto],Solucion) :-
-    comprobar(Problema,Resto,Solucion).
-comprobar(Problema,[],[]).
+astar(Problema,[[Costo,Estado|Estados]|Caminos],Solucion) :-
+    procesar(Problema,[[Costo,Estado|Estados]|Caminos],Nuevos),
+    astar(Problema,Nuevos,Solucion).
 
-
-/* Revisar que el findall lo este logrando bien */
 procesar(Problema,[[Costo,Estado|Estados]|Caminos],Resultado) :-
     findall(
-	[CostoNuevo,EstadoNuevo,Costo,Estado|Estados],
+	[CostoEstrella,CostoReal,EstadoNuevo,Costo,Estado|Estados],
 	( 
 	  movimiento(Problema,Estado,Movimiento),
 	  cost(Problema,Estado,Movimiento,CostoMoverse),
 	  action(Problema,Estado,Movimiento,EstadoNuevo),
 	  heuristic(Problema,EstadoNuevo,CostoHeu),
-	  CostoNuevo is CostoHeu + CostoMoverse
+	  CostoEstrella is Costo + CostoHeu + CostoMoverse,
+          CostoReal is CostoMoverse + Costo
 	),
 	Posibles
-    ),
+    ),!,
     renovar(Posibles,[[Costo,Estado|Estados]|Caminos],Resultado).
 procesar(_,_,[]).
 
-renovar([[CostoNuevo,EstadoNuevo|R1]|Ns],Originales,Resultado) :-
-    caminoMinimo([[CostoNuevo,EstadoNuevo|R1]|Ns],CM),
-    escogerCamino([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,CaminoEscogido),
-    renovarCaminos(Originales,CaminoEscogido,Resultado).
+renovar([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],[[Costo,Estado|Estados]|Caminos],Resultado) :-
+    caminoMinimo([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM),
+    caminoEscogido([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,CamE),
+    renovarCaminos([[Costo,Estado|Estados]|Caminos],CamE,Resultado).
 
-caminoMinimo([[CostoNuevo,_|_]|Ns],CostoMinimo) :-
-    caminoMinimo(Ns,CM), CostoMinimo is min(CM,CostoNuevo).
-caminoMinimo([[CostoMinimo,_|_]],CostoMinimo).
+/* Se saca el costo minimo de todos los posibles */
+caminoMinimo([[CostoEstrella,_,_|_]|Ns],CostoMinimo) :-
+    caminoMinimo(Ns,CM), CostoMinimo is min(CM,CostoEstrella).
+caminoMinimo([[CostoEstrella,_,_|_]],CostoEstrella).
 
-escogerCamino([],_,[]).
-escogerCamino([[CM,EstadoNuevo|R1]|Ns],CM,[CM,EstadoNuevo|R1]) :- 
-    escogerCamino(Ns,CM,RestoCaminos).
-escogerCamino([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :- 
-    CostoNuevo \== CM, escogerCamino(Ns,CM,RestoCaminos).
+/* Se escoge un camino que coincida con el costo minimo */
+caminoEscogido([],_,[]).
+caminoEscogido([[CM,CostoReal,EstadoNuevo|R1]|Ns],CM,[CostoReal,EstadoNuevo|R1]).
+caminoEscogido([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :- 
+    CostoEstrella \== CM, caminoEscogido(Ns,CM,RestoCaminos).
 
+/* Se actualiza la lista de caminos sustituyendo el viejo camino por el nuevo expandido y los demas se dejan igual */
 renovarCaminos([],_,[]).
-renovarCaminos([Camino|CaminosO],[CostoE,EstadoE|Camino],[[CostoE,EstadoE|Camino]|Resultado]) :-
-    renovarCaminos(CaminosO,[CostoE,EstadoE|Camino],Resultado).
-renovarCaminos([CaminoO|CaminosO],[CostoE,EstadoE|CaminoE],[CaminoO|Resultado]) :-
-    CaminoO \== CaminoE, renovarCaminos(CaminosO,[CostoE,EstadoE|CaminoE],Resultado).
+renovarCaminos([[Costo,Estado|Estados]|Caminos],[CostoE,EstadoE|[Costo,Estado|Estados]],[[CostoE,EstadoE|[Costo,Estado|Estados]]|Resultado]) :-
+    renovarCaminos(Caminos,[CostoE,EstadoE|[Costo,Estado|Estados]],Resultado).
+renovarCaminos([[Costo,Estado|Estados]|Caminos],[CostoE,EstadoE|EstadosE],[[Costo,Estado|Estados]|Resultado]) :-
+    EstadosE \== [Costo,Estado|Estados], renovarCaminos(Caminos,[CostoE,EstadoE|EstadosE],Resultado).
 
 /* Para resolver problemas con esta implementacion de A* */
-
 resolver(Problema,Solucion) :-
     inicial(Problema,Estado),
     astar(Problema,[[0,Estado]],Solucion).
