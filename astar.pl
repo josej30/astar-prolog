@@ -1,4 +1,4 @@
-/* Definición de A* */
+/* Definicion de A* */
 
 /* Que necesita?
 * 
@@ -8,14 +8,21 @@
 * <- Costo y estado final
 */
 
+/* 
+Tengo que revisar si el ultimo camino expandido queda al principio. 
+Esto para no tener que revisar toooodos los caminos y mapearle la funcion objective
+*/
 astar(Problema,[[Costo,Estado|Estados]|_],Solucion) :- 
     objective(Problema,Estado),
     append([Costo],[Estado],Solucion).
+
 
 astar(Problema,[Caminos],Solucion) :-
     procesar(Problema,[Caminos],Nuevos),
     astar(Problema,Nuevos,Solucion).
 
+
+/* Revisar que el findall lo este logrando bien */
 procesar(Problema,[[Costo,Estado|Estados]|Caminos],Resultado) :-
     renovar(Posibles,[[Costo,Estado|Estados]|Caminos],Resultado),
     findall(
@@ -31,41 +38,23 @@ procesar(Problema,[[Costo,Estado|Estados]|Caminos],Resultado) :-
     ).
 procesar(_,_,[]).
 
-renovar([[CostoNuevo,EstadoNuevo|R1]|Ns],[[Costo,Estado|Estados]|Caminos],Resultado) :-
+renovar([[CostoNuevo,EstadoNuevo|R1]|Ns],Originales,Resultado) :-
     caminoMinimo([[CostoNuevo,EstadoNuevo|R1]|Ns],CM),
-    limpiarCaminos([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,Resultado).
+    escogerCamino([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,CaminoEscogido),
+    renovarCaminos(Originales,CaminoEscogido,Resultado).
 
 caminoMinimo([[CostoNuevo,_|_]|Ns],CostoMinimo) :-
     caminoMinimo(Ns,CM), CostoMinimo is min(CM,CostoNuevo).
 caminoMinimo([[CostoMinimo,_|_]],CostoMinimo).
 
+escogerCamino([],_,[]).
+escogerCamino([[CM,EstadoNuevo|R1]|Ns],CM,[CM,EstadoNuevo|R1]) :- 
+    escogerCamino(Ns,CM,RestoCaminos).
+escogerCamino([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :- 
+    CostoNuevo \== CM, escogerCamino(Ns,CM,RestoCaminos).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-limpiarCaminos([],_,_).
-
-limpiarCaminos([[CM,EstadoNuevo|R1]|Ns],CM,Resultado) :- 
-    append([[CM,EstadoNuevo|R1]],[],Resultado), limpiarCaminos(Ns,CM,RestoCaminos).
-
-limpiarCaminos([[CostoNuevo,EstadoNuevo|R1]|Ns],CM,Resultado) :- 
-    append([R1],[],Resultado), limpiarCaminos(Ns,CM,RestoCaminos).
+renovarCaminos([],_,[]).
+renovarCaminos([Camino|CaminosO],[CostoE,EstadoE|Camino],[[CostoE,EstadoE|Camino]|Resultado]) :-
+    renovarCaminos(CaminosO,[CostoE,EstadoE|Camino],Resultado).
+renovarCaminos([CaminoO|CaminosO],[CostoE,EstadoE|CaminoE],[CaminoO|Resultado]) :-
+    CaminoO \== CaminoE, renovarCaminos(CaminosO,[CostoE,EstadoE|CaminoE],Resultado).
