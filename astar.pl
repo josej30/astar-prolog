@@ -12,56 +12,53 @@
 Tengo que revisar si el ultimo camino expandido queda al principio. 
 Esto para no tener que revisar toooodos los caminos y mapearle la funcion objective
 */
-astar(Problema,[[Costo,Estado|Estados]|Caminos],Solucion) :- 
+astar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,Solucion) :- 
     objective(Problema,Estado),
     append([Costo],[Estado],Solucion).
-astar(Problema,[[Costo,Estado|Estados]|Caminos],Solucion) :-
-    procesar(Problema,[[Costo,Estado|Estados]|Caminos],Nuevos),
-    astar(Problema,Nuevos,Solucion).
+astar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,Solucion) :-
+    procesar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,Posibles),
+    renovar(Posibles,[[Costo,Estado|Estados]|Caminos],Visitados,VisitadosNuevos,Nuevos),
+    astar(Problema,Nuevos,VisitadosNuevos,Solucion).
 
-procesar(Problema,[[Costo,Estado|Estados]|Caminos],Resultado) :-
+/* Revisar que el findall lo este logrando bien */
+procesar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,P) :-
     findall(
 	[CostoEstrella,CostoReal,EstadoNuevo,Costo,Estado|Estados],
 	( 
-	  movimiento(Problema,Estado,Movimiento),
+	  movimiento(Problema,Estado,Movimiento),          
 	  cost(Problema,Estado,Movimiento,CostoMoverse),
 	  action(Problema,Estado,Movimiento,EstadoNuevo),
+          \+ member(EstadoNuevo,Visitados),
 	  heuristic(Problema,EstadoNuevo,CostoHeu),
 	  CostoEstrella is Costo + CostoHeu + CostoMoverse,
           CostoReal is CostoMoverse + Costo
 	),
 	Posibles
     ),!,
-    renovar(Posibles,[[Costo,Estado|Estados]|Caminos],Resultado).
-procesar(_,_,[]).
+    procesar(Problema,Caminos,Visitados,Posibles2),
+    append(Posibles,Posibles2,P).
+procesar(_,_,_,[]).
 
-renovar([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],[[Costo,Estado|Estados]|Caminos],Resultado) :-
+renovar([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],[[Costo,Estado|Estados]|Caminos],VV,[EstadoN|VV],
+        [[CostoN,EstadoN|EstadosN]|[[Costo,Estado|Estados]|Caminos]]) :-
     caminoMinimo([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM),
-    caminoEscogido([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,CamE),
-    renovarCaminos([[Costo,Estado|Estados]|Caminos],CamE,Resultado).
+    renovarCaminos([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,[CostoN,EstadoN|EstadosN]).
 
-/* Se saca el costo minimo de todos los posibles */
 caminoMinimo([[CostoEstrella,_,_|_]|Ns],CostoMinimo) :-
     caminoMinimo(Ns,CM), CostoMinimo is min(CM,CostoEstrella).
 caminoMinimo([[CostoEstrella,_,_|_]],CostoEstrella).
 
-/* Se escoge un camino que coincida con el costo minimo */
-caminoEscogido([],_,[]).
-caminoEscogido([[CM,CostoReal,EstadoNuevo|R1]|Ns],CM,[CostoReal,EstadoNuevo|R1]).
-caminoEscogido([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :- 
-    CostoEstrella \== CM, caminoEscogido(Ns,CM,RestoCaminos).
-
-/* Se actualiza la lista de caminos sustituyendo el viejo camino por el nuevo expandido y los demas se dejan igual */
 renovarCaminos([],_,[]).
-renovarCaminos([[Costo,Estado|Estados]|Caminos],[CostoE,EstadoE|[Costo,Estado|Estados]],[[CostoE,EstadoE|[Costo,Estado|Estados]]|Resultado]) :-
-    renovarCaminos(Caminos,[CostoE,EstadoE|[Costo,Estado|Estados]],Resultado).
-renovarCaminos([[Costo,Estado|Estados]|Caminos],[CostoE,EstadoE|EstadosE],[[Costo,Estado|Estados]|Resultado]) :-
-    EstadosE \== [Costo,Estado|Estados], renovarCaminos(Caminos,[CostoE,EstadoE|EstadosE],Resultado).
+renovarCaminos([[CM,CostoReal,EstadoNuevo|R1]|Ns],CM,[CostoReal,EstadoNuevo|R1]).
+renovarCaminos([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :- 
+    CostoEstrella \== CM, renovarCaminos(Ns,CM,RestoCaminos).
+
 
 /* Para resolver problemas con esta implementacion de A* */
+
 resolver(Problema,Solucion) :-
     inicial(Problema,Estado),
-    astar(Problema,[[0,Estado]],Solucion).
+    astar(Problema,[[0,Estado]],[Estado],Solucion).
 
 /* Ejemplo de Wikipedia */
 
@@ -75,7 +72,7 @@ movimiento(w,w(i,[a,d]),M) :- member(M,[a,d]).
 movimiento(w,w(a,[b]),M) :- member(M,[b]).
 movimiento(w,w(b,[c]),M) :- member(M,[c]).
 movimiento(w,w(c,[z]),M) :- member(M,[z]).
-movimiento(w,w(d,[e]),M) :- member(M,[d]).
+movimiento(w,w(d,[e]),M) :- member(M,[e]).
 movimiento(w,w(e,[z]),M) :- member(M,[z]).
 
 cost(w,w(i,[a,d]),a,1.5).
@@ -99,3 +96,6 @@ heuristic(w,w(b,[c]),2).
 heuristic(w,w(c,[z]),4).
 heuristic(w,w(d,[e]),4.5).
 heuristic(w,w(e,[z]),2).
+
+/* Importante! */ 
+heuristic(w,w(z,[]),0).      /* La heuristica del nodo final siempre es cero (por eso es final) */
