@@ -4,7 +4,6 @@
 *
 * astar
 * 
-* -> Nombre del problema a resolver
 * -> Lista de caminos explorados hasta el momento 
 *    con su respectivo costo final
 * -> Lista de nodos visitados
@@ -12,13 +11,13 @@
 *
 */
 
-astar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,[Costo|Solucion]) :- 
-    objective(Problema,Estado),
+astar([[Costo,Estado|Estados]|Caminos],Visitados,[Costo|Solucion]) :- 
+    objective(Estado),
     salida([Costo,Estado|Estados],Solucion).
-astar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,Solucion) :-
-    procesar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,Posibles),
+astar([[Costo,Estado|Estados]|Caminos],Visitados,Solucion) :-
+    procesar([[Costo,Estado|Estados]|Caminos],Visitados,Posibles),
     renovar(Posibles,[[Costo,Estado|Estados]|Caminos],Visitados,VisitadosNuevos,Nuevos),
-    astar(Problema,Nuevos,VisitadosNuevos,Solucion).
+    astar(Nuevos,VisitadosNuevos,Solucion).
 
 salida([],[]).
 salida([Costo,Estado|Estados],[Estado|Solucion]) :-
@@ -28,7 +27,6 @@ salida([Costo,Estado|Estados],[Estado|Solucion]) :-
 *
 * procesar
 *
-* -> Nombre del problema 
 * -> Lista de caminos abiertos hasta el momento
 * -> Lista de nodos visitados
 * <- Lista con los nuevos posibles estados que se van a expandir.
@@ -40,23 +38,23 @@ salida([Costo,Estado|Estados],[Estado|Solucion]) :-
 *    al nodo fue por un camino de menor costo.
 *
 */
-procesar(Problema,[[Costo,Estado|Estados]|Caminos],Visitados,P) :-
+procesar([[Costo,Estado|Estados]|Caminos],Visitados,P) :-
     findall(
 	[CostoEstrella,CostoReal,EstadoNuevo,Costo,Estado|Estados],
 	( 
-	  movimiento(Problema,Estado,Movimiento),          
-	  cost(Problema,Estado,Movimiento,CostoMoverse),
-	  action(Problema,Estado,Movimiento,EstadoNuevo),
+	  movimiento(Estado,Movimiento),          
+	  cost(Estado,Movimiento,CostoMoverse),
+	  action(Estado,Movimiento,EstadoNuevo),
           \+ member(EstadoNuevo,Visitados),
-	  heuristic(Problema,EstadoNuevo,CostoHeu),
+	  heuristic(EstadoNuevo,CostoHeu),
 	  CostoEstrella is Costo + CostoHeu + CostoMoverse,
           CostoReal is CostoMoverse + Costo
 	),
 	Posibles
     ),!,
-    procesar(Problema,Caminos,Visitados,Posibles2),
+    procesar(Caminos,Visitados,Posibles2),
     append(Posibles,Posibles2,P).
-procesar(_,_,_,[]).
+procesar(_,_,[]).
 
 
 /* 
@@ -120,11 +118,10 @@ renovarCaminos([[CostoEstrella,CostoReal,EstadoNuevo|R1]|Ns],CM,RestoCaminos) :-
 /*---------- Hasta aqui es A* ------------*/
 
 
-/* Predicado para resolver comodamente los problemas en A* */
+/* Resolver un problema */
 
-resolver(Problema,Solucion) :-
-    inicial(Problema,Estado),
-    astar(Problema,[[0,Estado]],[Estado],Solucion).
+a_star(Start,Actions) :-
+    astar([[0,Start]],[Start],Actions).
 
 /************************/
 /* Ejemplo de Wikipedia */
@@ -132,38 +129,36 @@ resolver(Problema,Solucion) :-
 
 /* Represento un estado como (nodo_actual,[nodos_posibles]) */
 
-inicial(w,w(i,[a,d])).
+objective((z,_)).
 
-objective(w,w(z,_)).
+movimiento((i,[a,d]),M) :- member(M,[a,d]).
+movimiento((a,[b]),M) :- member(M,[b]).
+movimiento((b,[c]),M) :- member(M,[c]).
+movimiento((c,[z]),M) :- member(M,[z]).
+movimiento((d,[e]),M) :- member(M,[e]).
+movimiento((e,[z]),M) :- member(M,[z]).
 
-movimiento(w,w(i,[a,d]),M) :- member(M,[a,d]).
-movimiento(w,w(a,[b]),M) :- member(M,[b]).
-movimiento(w,w(b,[c]),M) :- member(M,[c]).
-movimiento(w,w(c,[z]),M) :- member(M,[z]).
-movimiento(w,w(d,[e]),M) :- member(M,[e]).
-movimiento(w,w(e,[z]),M) :- member(M,[z]).
+cost((i,[a,d]),a,1.5).
+cost((i,[a,d]),d,2).
+cost((a,[b]),b,2).
+cost((b,[c]),c,3).
+cost((c,[z]),z,4).
+cost((d,[e]),e,3).
+cost((e,[z]),z,2).
 
-cost(w,w(i,[a,d]),a,1.5).
-cost(w,w(i,[a,d]),d,2).
-cost(w,w(a,[b]),b,2).
-cost(w,w(b,[c]),c,3).
-cost(w,w(c,[z]),z,4).
-cost(w,w(d,[e]),e,3).
-cost(w,w(e,[z]),z,2).
+action((i,[a,d]),a,(a,[b])).
+action((i,[a,d]),d,(d,[e])).
+action((a,[b]),b,(b,[c])).
+action((b,[c]),c,(c,[z])).
+action((c,[z]),z,(z,[])).
+action((d,[e]),e,(e,[z])).
+action((e,[z]),z,(z,[])).
 
-action(w,w(i,[a,d]),a,w(a,[b])).
-action(w,w(i,[a,d]),d,w(d,[e])).
-action(w,w(a,[b]),b,w(b,[c])).
-action(w,w(b,[c]),c,w(c,[z])).
-action(w,w(c,[z]),z,w(z,[])).
-action(w,w(d,[e]),e,w(e,[z])).
-action(w,w(e,[z]),z,w(z,[])).
-
-heuristic(w,w(a,[b]),4).
-heuristic(w,w(b,[c]),2).
-heuristic(w,w(c,[z]),4).
-heuristic(w,w(d,[e]),4.5).
-heuristic(w,w(e,[z]),2).
+heuristic((a,[b]),4).
+heuristic((b,[c]),2).
+heuristic((c,[z]),4).
+heuristic((d,[e]),4.5).
+heuristic((e,[z]),2).
 
 /* Importante! */ 
-heuristic(w,w(z,[]),0).      /* La heuristica del nodo final siempre es cero (por eso es final) */
+heuristic((z,[]),0).      /* La heuristica del nodo final siempre es cero (por eso es final) */
