@@ -92,10 +92,12 @@ max(X,Y,X) :- Y < X.
 * showmoves\2 y todos sus auxiliares
 *************************************************/
 
-showmoves(_,[])     :- !.
-showmoves(E,[A|AS]) :-
-   show_estado(E),
-   action(E,A,E1),
+showmoves(state(I,D,X),[])     :-
+   show_estado(state(I,D,X)),
+   !.
+showmoves(state(I,D,X),[A|AS]) :-
+   show_estado(state(I,D,X)),
+   action(state(I,D,X),A,E1),
 /*   show_movimiento(A), */
    showmoves(E1,AS),!.
 
@@ -132,6 +134,6 @@ show_mov(X,Y,N1,N2) :-
 */
 
 /************************************************
-*      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe]),move(left,[moe])]).
+*      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe])]).
 ************************************************/
 
