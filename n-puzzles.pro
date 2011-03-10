@@ -31,3 +31,24 @@ objective(state([X|XS])) :-
 aux_fin(L,Y,Y)            :- member(L1,L), member(empty,L1).
 aux_fin([[]|XS],Y,Y1)     :- aux_fin(XS,Y,Y1).
 aux_fin([[Y|YS]|XS],Y,Y1) :- Y \= Y1, Y2 is Y+1, aux_fin([YS|XS],Y2,Y1).
+
+/**************************************
+* action({up|down|left|right)
+**************************************/
+
+action(state([X|XS]),up,state(L)) :-
+   \+ member(empty,X),
+   append(L1,[L2|L3],[X|XS]),
+   last(L1,L4),
+   member(empty,L4),
+   select(L4,L1,L5),
+   swap(L2,L4,L6,L7),
+   append(L5,L7,L8),
+   append(L8,[L6,L3],L).
+   
+action(state([X|XS]),down,state(L)).
+action(state([X|XS]),left,state(L)).
+action(state([X|XS]),right,state(L)).
+
+
+
