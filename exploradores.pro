@@ -10,6 +10,7 @@
 inicial(state([curly,larry,moe,shemp],[],left)).
 
 objective(state([],D,right)) :- 
+   lenght(D,4),
    member(curly,D),
    member(larry,D),
    member(moe,D),
@@ -92,12 +93,11 @@ max(X,Y,X) :- Y < X.
 *************************************************/
 
 showmoves(_,[])     :- !.
-
 showmoves(E,[A|AS]) :-
    show_estado(E),
    action(E,A,E1),
 /*   show_movimiento(A), */
-   showmoves(E1,AS).
+   showmoves(E1,AS),!.
 
 show_estado(state(I,D,X)) :-
    show_personas(I),
@@ -120,16 +120,17 @@ show_lin(right) :- show_pue("  "," @ ").
 show_pue(X,Y) :-
    format("~s|_______|~s",[X,Y]).
 /*
-show_movimiento(move(left,[N1])) :- show_mov("derecha","izquierda",N1).
-show_movimiento(move(right,[N1])) :- show_mov("izquierda","derecha",N1).   
-show_movimiento(move(left,[N1,N2])) :- show_mov("derecha","izquierda",N1,N2).
-show_movimiento(move(right,[N1,N2])) :- show_mov("izquierda","derecha",N1,N2).
+show_movimiento(move(left,[N1])) :- show_mov("derecha","izquierda",N1), !.
+show_movimiento(move(right,[N1])) :- show_mov("izquierda","derecha",N1), !.   
+show_movimiento(move(left,[N1,N2])) :- show_mov("derecha","izquierda",N1,N2), !.
+show_movimiento(move(right,[N1,N2])) :- show_mov("izquierda","derecha",N1,N2), !.
  
 show_mov(X,Y,N1) :-
    format("Se desplaza de ~s a ~s ~a",[X,Y,N1]), nl.
 show_mov(X,Y,N1,N2) :-
    format("Se desplazan de ~s a ~s ~a y ~a",[X,Y,N1,N2]), nl.
 */
+
 /************************************************
 *      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe]),move(left,[moe])]).
 ************************************************/
