@@ -68,11 +68,11 @@ cost(state(_,D,right),move(right,[N1]),Costo) :-
    member(N1,D),
    costo(N1,Costo).
 
-cost(state(I,_,left),move(right,[N1|N2]),Costo) :-
+cost(state(I,_,left),move(right,[N1,N2]),Costo) :-
    member(N1,I),
    member(N2,I),
    costo(N1,N2,Costo).
-cost(state(_,D,right),move(left,[N1|N2]),Costo) :-
+cost(state(_,D,right),move(left,[N1,N2]),Costo) :-
    member(N1,D),
    member(N2,D),
    costo(N1,N2,Costo).

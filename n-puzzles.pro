@@ -36,19 +36,81 @@ aux_fin([[Y|YS]|XS],Y,Y1) :- Y \= Y1, Y2 is Y+1, aux_fin([YS|XS],Y2,Y1).
 * action({up|down|left|right)
 **************************************/
 
-action(state([X|XS]),up,state(L)) :-
-   \+ member(empty,X),
-   append(L1,[L2|L3],[X|XS]),
-   last(L1,L4),
-   member(empty,L4),
-   select(L4,L1,L5),
-   swap(L2,L4,L6,L7),
-   append(L5,L7,L8),
-   append(L8,[L6,L3],L).
-   
-action(state([X|XS]),down,state(L)).
-action(state([X|XS]),left,state(L)).
-action(state([X|XS]),right,state(L)).
+action(state([X|XS]),up,state(R)) :-
+	\+ member(empty,X),
+	cambiar_empty_up([X|XS],R).
+action(state(L),down,state(R)) :-
+	last(L,L1),
+	\+ member(empty,L1),
+	cambiar_empty_down(L,R).
+action(state(L),left,state(R)) :-
+	member([X|XS],L),
+	member(empty,[X|XS]),
+	X \= empty,
+	cambiar_empty_left(L,R).
+action(state(L),right,state(R)) :-
+	last(L,L1),
+	\+ member(empty,L1),
+	cambiar_empty_right(L,R).
 
+cambiar_empty_up([X1,X2|XS],[X1|L]) :-
+	\+ member(empty,X2),
+	cambiar_empty_up([X2|XS],L).
+cambiar_empty_up([X1,X2|XS],[E1,E2|XS]) :-
+	member(empty,X2),
+	swap_columna(X2,X1,E2,E1).
 
+cambiar_empty_down([X1,X2|XS],[X1,L]) :-
+	\+ member(empty,X1),
+	cambiar_empty_down([X2|XS],L).
+cambiar_empty_down([X1,X2|XS],[E1,E2|XS]) :-
+	member(empty,X1),
+	swap_columna(X1,X2,E1,E2).
 
+swap_columna([X|XS],[Y|YS],[Y|XS],[X|YS]) :- X == empty.
+swap_columna([X|XS],[Y|YS],[X|L1],[Y|L2]) :-
+	X \= empty,
+	swap_columna(XS,YS,L1,L2).
+
+cambiar_empty_left([X|XS],[X|L]) :-
+	\+ member(empty,X),
+	cambiar_empty_left(XS,L).
+cambiar_empty_left([X|XS],[E|XS]) :-
+	member(empty,X),
+	swap_left(X,E).
+
+cambiar_empty_right([X|XS],[X|L]) :-
+	\+ member(empty,X),
+	cambiar_empty_right(XS,L).
+cambiar_empty_right([X|XS],[E|XS]) :-
+	member(empty,X),
+	swap_right(X,E).
+
+swap_left([X1,X2|XS],[X2,X1|XS]) :- X2 == empty.
+swap_left([X1,X2|XS],[X1,L]) :-
+	X2 \= empty,
+	swap_left([X2|XS],L).
+
+swap_right([X1,X2|XS],[X2,X1|XS]):- X1 == empty.
+swap_right([X1,X2|XS],[X1|L]) :-
+	X1 \= empty,
+	swap_right([X2|XS],L).
+
+/*
+* Costo :D no necesita auxiliares :D
+*/
+cost(state([X|_]),up,1)      :- \+ member(empty,X).
+cost(state(L),down,1)         :- 
+	last(L,L1),
+	\+ member(empty,L1).
+cost(state(L),left,1)         :- 
+	member([X|XS],L),
+	member(empty,[X|XS]),
+	X \= empty.
+cost(state(L),right,1)        :-
+	last(L,L1),
+	\+ member(empty,L1).
+
+/*
+* showmoves
+*/
