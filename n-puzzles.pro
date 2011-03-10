@@ -114,3 +114,34 @@ cost(state(L),right,1)        :-
 /*
 * showmoves
 */
+
+showmoves(state(L),_) :- 
+	show_estado(state(L)), !.
+showmoves(state(L),[A|AS]) :-
+	show_estado(state(L)),
+	action(state(L),A,E1),
+	showmoves(E1,AS), !.
+show_estado(state(L)) :- 
+	length(L,N),
+	show_estado(L),
+	show_linea(0,N), nl.
+show_estado([]).
+show_estado([X|XS]) :-
+	length(X,N),
+	show_linea(0,N),
+	show_elementos(X),
+	show_estado(XS).
+
+show_linea(X,X) :- write(+), nl, !.
+show_linea(X,Y) :-
+	write(+--),
+	X1 is X+1,
+	show_linea(X1,Y), !.
+
+show_elementos([]) :- write('|'), nl, !.
+show_elementos([empty|XS]) :-
+	write('|  '),
+	show_elementos(XS). 
+show_elementos([X|XS])     :- 
+	format("| ~w",[X]),
+	show_elementos(XS).

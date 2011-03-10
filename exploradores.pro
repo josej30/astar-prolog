@@ -10,7 +10,7 @@
 inicial(state([curly,larry,moe,shemp],[],left)).
 
 objective(state([],D,right)) :- 
-   lenght(D,4),
+   length(D,4),
    member(curly,D),
    member(larry,D),
    member(moe,D),
@@ -93,8 +93,7 @@ max(X,Y,X) :- Y < X.
 *************************************************/
 
 showmoves(state(I,D,X),[])     :-
-   show_estado(state(I,D,X)),
-   !.
+   show_estado(state(I,D,X)), !.
 showmoves(state(I,D,X),[A|AS]) :-
    show_estado(state(I,D,X)),
    action(state(I,D,X),A,E1),
