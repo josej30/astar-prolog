@@ -89,7 +89,7 @@ cambiar_empty_right([X|XS],[E|XS]) :-
 	swap_right(X,E).
 
 swap_left([X1,X2|XS],[X2,X1|XS]) :- X2 == empty.
-swap_left([X1,X2|XS],[X1,L]) :-
+swap_left([X1,X2|XS],[X1|L]) :-
 	X2 \= empty,
 	swap_left([X2|XS],L).
 
