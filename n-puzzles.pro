@@ -149,7 +149,13 @@ show_elementos([empty|XS]) :-
 	show_elementos(XS) , !. 
 show_elementos([X|XS])     :- 
 	X \= empty,
+	X < 10,
 	format("| ~w",[X]),
+	show_elementos(XS).
+show_elementos([X|XS])     :- 
+	X \= empty,
+	X > 10,
+	format("|~w",[X]),
 	show_elementos(XS).
 
 

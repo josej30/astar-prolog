@@ -98,7 +98,7 @@ showmoves(state(I,D,X),L)     :-
 	write('*** Estado Inicial ***'), nl,
 	showmoves_aux(state(I,D,X),L,0).
 
-showmoves_aux(state(I,D,X),[],Costo)     :-
+showmoves_aux(state(I,D,X),[],_)     :-
 	write('*** Resultado ***'), nl,
 	show_estado(state(I,D,X)), !.
 showmoves_aux(state(I,D,X),[A|AS],Costo) :-
@@ -148,4 +148,37 @@ show_mov(X,Y,N1,N2,Costo) :-
 *      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe])]).
 ************************************************/
 
-heuristic(_,1).
+heuristic(state(I,_,_),V) :- 
+	length(I,N),
+	heuristic_aux(I,N,V).
+
+heuristic_aux(_,4,35) :- !.
+heuristic_aux(I,3,V) :- 
+	max_costo(I,V1),
+	min_costo(I,V2),
+	V is V1+V2, !.
+heuristic_aux (I,N,V) :-
+	N >= 0,
+	N < 3,
+	max_costo(I,V), !.
+heuristic_aux(_,_,70).
+
+max_costo([],0).
+max_costo([X1|XS],V1) :-
+	costo(X1,V1),
+	max_costo(XS,V2),
+	V1 >= V2.
+max_costo([X1|XS],V2) :-
+	costo(X1,V1),
+	max_costo(XS,V2),
+	V1 < V2.
+
+min_costo([],0).
+min_costo([X1|XS],V1) :-
+	costo(X1,V1),
+	min_costo(XS,V2),
+	V1 =< V2.
+min_costo([X1|XS],V2) :-
+	costo(X1,V1),
+	min_costo(XS,V2),
+	V1 > V2.
