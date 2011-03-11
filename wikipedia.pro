@@ -29,6 +29,7 @@ action((c,[z]),z,(z,[])).
 action((d,[e]),e,(e,[z])).
 action((e,[z]),z,(z,[])).
 
+heuristic((i,[a,d]),8).
 heuristic((a,[b]),4).
 heuristic((b,[c]),2).
 heuristic((c,[z]),4).
