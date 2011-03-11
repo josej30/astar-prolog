@@ -1,4 +1,13 @@
 /************************************************
+* Asunto: Código fuente del proyecto de Prolog. Archivo: bridge.pro
+* Materia: Taller de Lenguajes de Programación I (CI-3661)
+* Trimestre: Enero-Marzo 2011
+* Profesor: Ernesto Novich
+* 
+* Grupo: G4
+* Integrantes:            Carnet:  
+* José Garrido    (06-39590)
+* José Lezama     (07-41104)
 *
 * Problema de n-puzzles
 * 
@@ -9,24 +18,29 @@
 *************************************************/
 
 inicial(state(L)) :-
-   length(L,Y),
-   aux_estado(L,Y),
-   Y1 is Y*Y,
-   aux_inicio(L,1,Y1).
+	length(L,Y),
+	aux_estado(L,Y),
+	Y1 is Y*Y,
+	aux_inicio(L,1,Y1).
 
 aux_estado([],_).
 aux_estado([X|XS],Y) :-
-   length(X,Y),
-   aux_estado(XS,Y).
+	length(X,Y),
+	aux_estado(XS,Y).
 
 aux_inicio(L,Y,Y)  :- member(L1,L), member(empty,L1).
-aux_inicio(L,Y,Y1) :- Y < Y1, Y2 is Y+1, member(L1,L), member(Y,L1), aux_inicio(L,Y2,Y1).
+aux_inicio(L,Y,Y1) :- 
+	Y < Y1, 
+	Y2 is Y+1, 
+	member(L1,L), 
+	member(Y,L1),
+	aux_inicio(L,Y2,Y1).
 
 objective(state([X|XS])) :- 
-   length([X|XS],Y),
-   aux_estado([X|XS],Y),
-   Y1 is Y*Y,
-   aux_fin([X|XS],1,Y1).
+	length([X|XS],Y),
+	aux_estado([X|XS],Y),
+	Y1 is Y*Y,
+	aux_fin([X|XS],1,Y1).
 
 aux_fin(L,Y,Y)            :- member(L1,L), member(empty,L1).
 aux_fin([[]|XS],Y,Y1)     :- aux_fin(XS,Y,Y1).
@@ -35,37 +49,36 @@ aux_fin([[Y|YS]|XS],Y,Y1) :- Y \= Y1, Y2 is Y+1, aux_fin([YS|XS],Y2,Y1).
 /**************************************
 * action({up|down|left|right)
 **************************************/
-
-action(state([X|XS]),down,state(R)) :-
+action(state([X|XS]),up,state(R)) :-
 	\+ member(empty,X),
-	cambiar_empty_down([X|XS],R).
-action(state(L),up,state(R)) :-
+	cambiar_empty_up([X|XS],R).
+action(state(L),down,state(R)) :-
 	last(L,L1),
 	\+ member(empty,L1),
-	cambiar_empty_up(L,R).
-action(state(L),right,state(R)) :-
+	cambiar_empty_down(L,R).
+action(state(L),left,state(R)) :-
 	member([X|XS],L),
 	member(empty,[X|XS]),
 	X \= empty,
-	cambiar_empty_right(L,R).
-action(state(L),left,state(R)) :-
+	cambiar_empty_left(L,R).
+action(state(L),right,state(R)) :-
 	member(L1,L),
 	member(empty,L1),
 	last(L1,E),
 	E \= empty,
-	cambiar_empty_left(L,R).
+	cambiar_empty_right(L,R).
 
-cambiar_empty_down([X1,X2|XS],[X1|L]) :-
+cambiar_empty_up([X1,X2|XS],[X1|L]) :-
 	\+ member(empty,X2),
-	cambiar_empty_down([X2|XS],L).
-cambiar_empty_down([X1,X2|XS],[E1,E2|XS]) :-
+	cambiar_empty_up([X2|XS],L).
+cambiar_empty_up([X1,X2|XS],[E1,E2|XS]) :-
 	member(empty,X2),
 	swap_columna(X2,X1,E2,E1).
 
-cambiar_empty_up([X1,X2|XS],[X1|L]) :-
+cambiar_empty_down([X1,X2|XS],[X1|L]) :-
 	\+ member(empty,X1),
-	cambiar_empty_up([X2|XS],L).
-cambiar_empty_up([X1,X2|XS],[E1,E2|XS]) :-
+	cambiar_empty_down([X2|XS],L).
+cambiar_empty_down([X1,X2|XS],[E1,E2|XS]) :-
 	member(empty,X1),
 	swap_columna(X1,X2,E1,E2).
 
@@ -74,17 +87,17 @@ swap_columna([X|XS],[Y|YS],[X|L1],[Y|L2]) :-
 	X \= empty,
 	swap_columna(XS,YS,L1,L2).
 
-cambiar_empty_right([X|XS],[X|L]) :-
-	\+ member(empty,X),
-	cambiar_empty_right(XS,L).
-cambiar_empty_right([X|XS],[E|XS]) :-
-	member(empty,X),
-	swap_left(X,E).
-
 cambiar_empty_left([X|XS],[X|L]) :-
 	\+ member(empty,X),
 	cambiar_empty_left(XS,L).
 cambiar_empty_left([X|XS],[E|XS]) :-
+	member(empty,X),
+	swap_left(X,E).
+
+cambiar_empty_right([X|XS],[X|L]) :-
+	\+ member(empty,X),
+	cambiar_empty_right(XS,L).
+cambiar_empty_right([X|XS],[E|XS]) :-
 	member(empty,X),
 	swap_right(X,E).
 
@@ -160,10 +173,11 @@ show_elementos([X|XS])     :-
 	show_elementos(XS).
 
 
-/*
-* Heuristica
-*/
 
+/************************************************
+* El functor heuristic(State,Value) 
+* y todos sus auxiliares 
+************************************************\
 heuristic(X,Y) :- man(X,Y).
 
 man(state(L),Valor) :-
@@ -179,7 +193,7 @@ man_pos(E,state(L),Valor) :-
 	N2 is N*N,
 	aux_inicio(L,1,N2),
 	man_pos_aux(E,1,N,N2,L,Valor).
-	
+
 man_aux(I,N,N2,L,A) :-
 	I < N2,
 	I1 is I+1,
@@ -217,5 +231,3 @@ absoluto(X,Y) :-
 	X =< 0,
 	Y is (-1)*X, !.
 absoluto(X,X).
-
-/* [right,down,left,up,right,down] */
