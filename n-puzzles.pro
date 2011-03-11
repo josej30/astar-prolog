@@ -55,10 +55,10 @@ action(state(L),right,state(R)) :-
 	E \= empty,
 	cambiar_empty_right(L,R).
 
-cambiar_empty_down([X1,X2|XS],[X1|L]) :-
+cambiar_empty_up([X1,X2|XS],[X1|L]) :-
 	\+ member(empty,X2),
-	cambiar_empty_down([X2|XS],L).
-cambiar_empty_down([X1,X2|XS],[E1,E2|XS]) :-
+	cambiar_empty_up([X2|XS],L).
+cambiar_empty_up([X1,X2|XS],[E1,E2|XS]) :-
 	member(empty,X2),
 	swap_columna(X2,X1,E2,E1).
 
