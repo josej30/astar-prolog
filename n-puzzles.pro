@@ -8,11 +8,11 @@
 *
 *************************************************/
 
-inicial(state([X|XS])) :-
-   length([X|XS],Y),
-   aux_estado([X|XS],Y),
+inicial(state(L)) :-
+   length(L,Y),
+   aux_estado(L,Y),
    Y1 is Y*Y,
-   aux_inicio([X|XS],1,Y1).
+   aux_inicio(L,1,Y1).
 
 aux_estado([],_).
 aux_estado([X|XS],Y) :-
@@ -49,8 +49,10 @@ action(state(L),left,state(R)) :-
 	X \= empty,
 	cambiar_empty_left(L,R).
 action(state(L),right,state(R)) :-
-	last(L,L1),
-	\+ member(empty,L1),
+	member(L1,L),
+	member(empty,L1),
+	last(L1,E),
+	E \= empty,
 	cambiar_empty_right(L,R).
 
 cambiar_empty_up([X1,X2|XS],[X1|L]) :-
@@ -60,7 +62,7 @@ cambiar_empty_up([X1,X2|XS],[E1,E2|XS]) :-
 	member(empty,X2),
 	swap_columna(X2,X1,E2,E1).
 
-cambiar_empty_down([X1,X2|XS],[X1,L]) :-
+cambiar_empty_down([X1,X2|XS],[X1|L]) :-
 	\+ member(empty,X1),
 	cambiar_empty_down([X2|XS],L).
 cambiar_empty_down([X1,X2|XS],[E1,E2|XS]) :-
@@ -108,23 +110,26 @@ cost(state(L),left,1)         :-
 	member(empty,[X|XS]),
 	X \= empty.
 cost(state(L),right,1)        :-
-	last(L,L1),
-	\+ member(empty,L1).
+	member(L1,L),
+	member(empty,L1),
+	last(L1,E),
+	E \= empty.
 
 /*
 * showmoves
 */
 
-showmoves(state(L),_) :- 
+showmoves(state(L),[]) :- 
 	show_estado(state(L)), !.
 showmoves(state(L),[A|AS]) :-
 	show_estado(state(L)),
 	action(state(L),A,E1),
-	showmoves(E1,AS), !.
+	showmoves(E1,AS) , !.
 show_estado(state(L)) :- 
 	length(L,N),
 	show_estado(L),
 	show_linea(0,N), nl.
+
 show_estado([]).
 show_estado([X|XS]) :-
 	length(X,N),
@@ -141,7 +146,69 @@ show_linea(X,Y) :-
 show_elementos([]) :- write('|'), nl, !.
 show_elementos([empty|XS]) :-
 	write('|  '),
-	show_elementos(XS). 
+	show_elementos(XS) , !. 
 show_elementos([X|XS])     :- 
+	X \= empty,
 	format("| ~w",[X]),
 	show_elementos(XS).
+
+
+/*
+* Heuristica
+*/
+
+heuristic(X,Y) :- man(X,Y).
+
+man(state(L),Valor) :-
+	length(L,N),
+	aux_estado(L,N),
+	N2 is N*N,
+	aux_inicio(L,1,N2),
+	man_aux(1,N,N2,L,Valor).
+
+man_pos(E,state(L),Valor) :-
+	length(L,N),
+	aux_estado(L,N),
+	N2 is N*N,
+	aux_inicio(L,1,N2),
+	man_pos_aux(E,1,N,N2,L,Valor).
+	
+man_aux(I,N,N2,L,A) :-
+	I < N2,
+	I1 is I+1,
+	man_pos_aux(I,1,N,N2,L,A1),
+	man_aux(I1,N,N2,L,A2),
+	A is A1+A2.
+man_aux(N2,N,N2,L,A) :-
+	man_pos_aux(empty,1,N,N2,L,A).
+
+man_pos_aux(E,I,N,N2,[[E|_]|_],A) :-
+	E \= empty,
+	E =< N2,
+	B is ((E mod N) + 1) - ((I mod N) + 1),
+	C is ((E//N) + 1) - ((I//N) + 1),
+	absoluto(B,D),
+	absoluto(C,F),
+	A is D+F.
+man_pos_aux(E,I,N,N2,[[X|XS]|YS],A) :-
+	E \= empty,
+	E \= X,
+	E < N2,
+	X \= [],
+	I1 is I+1,
+	man_pos_aux(E,I1,N,N2,[XS|YS],A).
+man_pos_aux(E,I,N,N2,[[]|YS],A) :- 
+	man_pos_aux(E,I,N,N2,YS,A).
+man_pos_aux(empty,I,N,N2,[[X|XS]|YS],A) :-
+	X \= empty,
+	I1 is I+1,
+	man_pos_aux(empty,I1,N,N2,[XS|YS],A).
+man_pos_aux(empty,I,N,N2,[[empty|XS]|YS],A) :-
+	man_pos_aux(N2,I,N,N2,[[N2|XS]|YS],A).
+
+absoluto(X,Y) :-
+	X =< 0,
+	Y is (-1)*X, !.
+absoluto(X,X).
+
+/* [right,down,left,up,right,down] */

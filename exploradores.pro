@@ -94,18 +94,23 @@ max(X,Y,X) :- Y < X.
 * showmoves\2 y todos sus auxiliares
 *************************************************/
 
-showmoves(state(I,D,X),[])     :-
-   show_estado(state(I,D,X)), !.
-showmoves(state(I,D,X),[A|AS]) :-
-   show_estado(state(I,D,X)),
-   action(state(I,D,X),A,E1),
-/*   show_movimiento(A), */
-   showmoves(E1,AS),!.
+showmoves(state(I,D,X),L)     :-
+	write('*** Estado Inicial ***'), nl,
+	showmoves_aux(state(I,D,X),L).
+
+showmoves_aux(state(I,D,X),[])     :-
+	write('*** Resultado ***'), nl,
+	show_estado(state(I,D,X)), !.
+showmoves_aux(state(I,D,X),[A|AS]) :-
+	show_estado(state(I,D,X)),
+	action(state(I,D,X),A,E1),
+	show_movimiento(A),  
+	showmoves_aux(E1,AS),!.
 
 show_estado(state(I,D,X)) :-
    show_personas(I),
    show_lin(X),
-   show_personas(D), nl.
+   show_personas(D), nl, nl.
 
 show_personas(X) :- 
    show(curly,X),
@@ -122,17 +127,16 @@ show_lin(right) :- show_pue("  "," @ ").
 
 show_pue(X,Y) :-
    format("~s|_______|~s",[X,Y]).
-/*
+
 show_movimiento(move(left,[N1])) :- show_mov("derecha","izquierda",N1), !.
 show_movimiento(move(right,[N1])) :- show_mov("izquierda","derecha",N1), !.   
 show_movimiento(move(left,[N1,N2])) :- show_mov("derecha","izquierda",N1,N2), !.
 show_movimiento(move(right,[N1,N2])) :- show_mov("izquierda","derecha",N1,N2), !.
- 
+
 show_mov(X,Y,N1) :-
-   format("Se desplaza de ~s a ~s ~a",[X,Y,N1]), nl.
+   format("Se desplaza de ~s a ~s ~a",[X,Y,N1]),  nl.
 show_mov(X,Y,N1,N2) :-
    format("Se desplazan de ~s a ~s ~a y ~a",[X,Y,N1,N2]), nl.
-*/
 
 /************************************************
 *      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe])]).
