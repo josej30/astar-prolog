@@ -96,16 +96,18 @@ max(X,Y,X) :- Y < X.
 
 showmoves(state(I,D,X),L)     :-
 	write('*** Estado Inicial ***'), nl,
-	showmoves_aux(state(I,D,X),L).
+	showmoves_aux(state(I,D,X),L,0).
 
-showmoves_aux(state(I,D,X),[])     :-
+showmoves_aux(state(I,D,X),[],Costo)     :-
 	write('*** Resultado ***'), nl,
 	show_estado(state(I,D,X)), !.
-showmoves_aux(state(I,D,X),[A|AS]) :-
+showmoves_aux(state(I,D,X),[A|AS],Costo) :-
 	show_estado(state(I,D,X)),
 	action(state(I,D,X),A,E1),
-	show_movimiento(A),  
-	showmoves_aux(E1,AS),!.
+        cost(state(I,D,X),A,Nuevo),
+        Costo1 is Costo + Nuevo,
+	show_movimiento(A,Costo1),  
+	showmoves_aux(E1,AS,Costo1),!.
 
 show_estado(state(I,D,X)) :-
    show_personas(I),
@@ -128,17 +130,21 @@ show_lin(right) :- show_pue("  "," @ ").
 show_pue(X,Y) :-
    format("~s|_______|~s",[X,Y]).
 
-show_movimiento(move(left,[N1])) :- show_mov("derecha","izquierda",N1), !.
-show_movimiento(move(right,[N1])) :- show_mov("izquierda","derecha",N1), !.   
-show_movimiento(move(left,[N1,N2])) :- show_mov("derecha","izquierda",N1,N2), !.
-show_movimiento(move(right,[N1,N2])) :- show_mov("izquierda","derecha",N1,N2), !.
+show_movimiento(move(left,[N1]),Costo) :- 
+	show_mov("derecha","izquierda",N1,Costo), !.
+show_movimiento(move(right,[N1]),Costo) :- 
+	show_mov("izquierda","derecha",N1,Costo), !.   
+show_movimiento(move(left,[N1,N2]),Costo) :- 
+	show_mov("derecha","izquierda",N1,N2,Costo), !.
+show_movimiento(move(right,[N1,N2]),Costo) :- 
+	show_mov("izquierda","derecha",N1,N2,Costo), !.
 
-show_mov(X,Y,N1) :-
-   format("Se desplaza de ~s a ~s ~a",[X,Y,N1]),  nl.
-show_mov(X,Y,N1,N2) :-
-   format("Se desplazan de ~s a ~s ~a y ~a",[X,Y,N1,N2]), nl.
+show_mov(X,Y,N1,Costo) :-
+	format("Con ~w minutos de uso de linterna (Termina el Movimiento): Desplazamiento de ~s a ~s de ~a",[Costo,X,Y,N1]),  nl.
+show_mov(X,Y,N1,N2,Costo) :-
+	format("Con ~w minutos de uso de linterna (Termina el Movimiento): Desplazamiento de ~s a ~s de ~a y ~a",[Costo,X,Y,N1,N2]), nl.
 
-/************************************************
+/*******************************x*****************
 *      showmoves(state([curly,larry,moe,shemp],[],left),[move(right,[larry,moe]),move(left,[moe]),move(right,[curly,shemp]),move(left,[larry]),move(right,[larry,moe])]).
 ************************************************/
 
